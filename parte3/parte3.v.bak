@@ -1,0 +1,55 @@
+module conj_ass2vias( input clock,
+							 input[4:0] tag_input, //tag que vem da memoria pra associa com a tag da cache
+							 input index_input);
+		
+	reg[15:0] cache[1:0][1:0]; // conjunto x via/bloco
+	
+	wire valid[1:0];
+	wire lru[1:0];
+	wire index[1:0];
+	wire [4:0] tag_conj[1:0];
+	wire [7:0] bloco_conj[1:0];
+	
+	assign valid[0] = cache[index_input][0][15];
+	assign valid[1] = cache[index_input][1][15];
+	assign tag_conj1[0] = cache[index_input][0][14:9];
+	assign tag_conj1[1] = cache[index_input][1][14:9];
+	assign lru1[0] = cache[index_input][0][8];
+	assign lru1[1] = cache[index_input][1][8];
+	assign bloco_conj1[0] = cache[index_input][0][7:0];
+	assign bloco_conj1[1] = cache[index_input][1][7:0];
+	
+	initial begin 
+	
+		/* INICIALIZAÇÃO DOS CONJUNTOS */
+	
+		//([15]bit de validade, [14:10]tag, [9]lru, [8]dirty, [0:7]valor)
+		cache[0][0] = 16'b1 001000 000000000; //tag = 100, valor = 0
+		cache[0][1] = 16'b1 001011 000000001; //tag = 101, valor = 1
+		
+		cache[1][0] = 16'b1 00100 0000000010; //tag = 100, valor = 2
+		cache[1][1] = 16'b1 00101 1000000011; //tag = 101, valor = 3
+		
+		solicitacao_de_escrita_na_memoria = 1'b0;
+		solicitacao_de_leitura_na_memoria = 1'b0;
+		
+	end
+	
+	always@(posedge clock) begin
+		if(write) begin
+			if (tag_conj1[0] == tag_input) begin //referenciua pro conjunto 1
+				
+				// implementa a parte conj 1
+			
+			end 
+			else begin //caso nao seja o comj 1, automaticamente eh o 2
+				
+				// implementa a parte conj 2
+			
+			end
+			
+		
+	
+	
+	
+		
