@@ -20,6 +20,11 @@ module cache_totalmente_associativa (
 	wire lru   [1:0];
 	wire tag   [6:0];
 	wire bloco [3:0];
+	/*
+		Cache:
+			Valido Dirty LRU#1 LRU#2 TAG Dado
+			  x      x     x     x 
+	*/
 	
 	assign  valido = cache[index][15];
 	assign  dirty  = cache[index][14];
