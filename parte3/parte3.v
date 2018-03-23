@@ -1,18 +1,18 @@
-module cache_totalmente_associativa (	
-	input[4:0] Address, 
+module cache_totalmente_associativa (
+	input[4:0] Address,
 	input clock,
-	input Write,	
+	input Write,
 	input[4:0] BlockIn, // dado que esta indo do circuito para a cache
 	input[4:0] M_Block_C, // dado que esta indo da memoria para a cache
-	
+
 	output reg[4:0] BlockOut, // o bloco da cache que está sendo enviado para o circuito
 	output reg C_Write_M, // sinal de acesso à memoria
 	output reg[4:0] C_Block_M, // o bloco da cache que está sendo enviado para a memoria
 	output reg hit
 	);
 
-	wire index = Address[4];
-	
+	wire tag_mem = Address[7];
+
 	reg [15:0] cache[3:0]; //4 blocos com palavras de 16bits
 
 	wire valido;
@@ -23,87 +23,132 @@ module cache_totalmente_associativa (
 	/*
 		Cache:
 			Valido Dirty LRU#1 LRU#2 TAG Dado
-			  x      x     x     x 
+			  x      x     x     x
 	*/
-	
-	assign  valido = cache[index][15];
-	assign  dirty  = cache[index][14];
-	assign  lru    = cache[index][13:12];
-	assign  tag    = cache[index][11:5];
-	assign  bloco  = cache[index][4:0];
+
+	assign  valido = cache[tag_mem][15];
+	assign  dirty  = cache[tag_mem][14];
+	assign  lru    = cache[tag_mem][13:12];
+	assign  tag    = cache[tag_mem][11:5];
+	assign  bloco  = cache[tag_mem][4:0];
 
 	reg acessado,caso_especial;
 
 	initial begin
 		//INICIALIZAÇÃO DOS CONJUNTOS
-		
+
 		//([15]validade, [14]dirty, [13:12]lru, [11:5]tag, [4:0]bloco)
-		cache[0] = 12'b{1 0 00 1100100 00101}; //tag = 1100100(100) , valor = 00101(5)
-		cache[1] = 12'b{1 0 01 1100110 00001}; //tag = 1100110(102) , valor = 00001(1)
-		cache[2] = 12'b{0 0 11 1101001 00101}; //tag = 1101001(105) , valor = 00101(5)
-		cache[3] = 12'b{1 0 10 1100101 00011}; //tag = 1100101(101) , valor = 00011(3)
-		
+		cache[0] = 12'b{1, 0, 00, 1100100, 00101}; //tag = 1100100(100) , valor = 00101(5)
+		cache[1] = 12'b{1, 0, 01, 1100110, 00001}; //tag = 1100110(102) , valor = 00001(1)
+		cache[2] = 12'b{0, 0, 11, 1101001, 00101}; //tag = 1101001(105) , valor = 00101(5)
+		cache[3] = 12'b{1, 0, 10, 1100101, 00011}; //tag = 1100101(101) , valor = 00011(3)
+
 		//cache[index]
 		caso_especial = 1'b0;
-		
+
 		hit = 1'b0;
 	end
 
 	always@(posedge clock) begin
 		if(caso_especial) begin // caso especial de escrita ocorrendo ao mesmo tempo de uma leitura
-			cache[index][acessado][4:0] = M_Block_C;	
+			cache[index][acessado][4:0] = M_Block_C;
 			cache[index][acessado][11] = 1'b1;
 			caso_especial = 1'b0;
 		end // fim caso especial
-		
-		
+
+
 		//>>>>LEITURA<<<<
-		if(Write == 0) begin 
-			if(tag[0] == Address[3:0] && valido[0] == 1) begin // caso exista uma tag valida
-				acessado = 1'b0; 
-				hit = 1'b1;
-			end 
-		
-			else if(tag[1] == Address[3:0] && valido[1] == 1) begin // caso nao exista a primeira tag, verifica a seguinte
-				acessado = 1'b1; 
-				hit = 1'b1;
+		if(Write == 0) begin
+			else if(tag[0] == Address[3:0] && valido[0] == 1) begin // caso nao exista a primeira tag, verifica a seguinte
+				if (valido[0] == 1) begin
+					hit = 1'b1;
+				end
+			 acessado = 1'b0;
 			end
-			
+
+			else if(tag[1] == Address[3:0] && valido[1] == 1) begin // caso nao exista a primeira tag, verifica a seguinte
+				if (valido[3] == 1) begin
+					hit = 1'b1;
+				end
+				acessado = 1'b1;
+			end
+
+			else if(tag[2] == Address[3:0] && valido[2] == 1) begin // caso exista uma tag valida
+				if (valido[3] == 1) begin
+					hit = 1'b1;
+				end
+				acessado = 2'b10
+			end
+
+			else if(tag[3] == Address[3:0]) begin // caso nao exista a primeira tag, verifica a seguinte
+				if (valido[3] == 1) begin
+					hit = 1'b1;
+				end
+					acessado = 2'b11;
+			end
+
 			else begin // caso nao exista nenhum bloco valido ou existe um bloco valido mas nao tem tag correspondente, faz acesso a memoria
-				acessado = lru[0];
+				if(lru[0] == 2'b11) begin
+					acessado = 2'b00;
+				end
+				else if(lru[1] == 2'b11) begin
+					acessado = 2'b01;
+				end
+				else if(lru[2] == 2'b11) begin
+					acessado = 2'b10;
+				end
+				else if(lru[3] == 2'b11) begin
+					acessado = 2'b11;
+				end
+
 				if(dirty[acessado] == 1) begin // verifica o bit dirty para o caso de ele ser valido
 					C_Write_M = 1'b1; // solicitacao de escrita da cache na memoria
 					C_Block_M = bloco[acessado]; // bloco da cache que deve ser escrito na memoria
 					caso_especial = 1'b1; // CASO ESPECIAL: quando le bloco dirty, é necessario tanto ler quanto escrever algo na memoria
-				end			
+				end
 			end
-			
-			BlockOut = cache[index][acessado][4:0]; // leitura do bloco e saída no circuito
-			cache[index][acessado][10] = 1'b1; // atualizacao do lru acessado: vai para o mais novo
-			cache[index][~acessado][10] = 1'b0; // atualizacao do lru nao acessado: vai pro mais antigo
+
+			BlockOut = cache[tag_mem][4:0]; // leitura do bloco e saída no circuito
+			cache[acessado][13:12] = 2'b00; // atualizacao do lru acessado: vai para o mais novo
+			cache[acessado][15] = 1'b1; //atualiza valido
+
+			//atualiza lru's
+			if(acessado != 2'b00) begin
+				cache[0][13:12] = cache[0][13:12] + 1'b1;
+			end
+			if(acessado != 2'b01) begin
+				cache[1][13:12] = cache[1][13:12] + 1'b1;
+			end
+			if(acessado != 2'b10) begin
+				cache[2][13:12] = cache[2][13:12] + 1'b1;
+			end
+			if(acessado != 2'b11) begin
+				cache[acessado3][13:12] = cache[3][13:12] + 1'b1;
+			end
+
 		end // end leitura
-		
-		
+
+
 		//>>>>ESCRITA<<<<
-		else begin // Write==1 escrita 
+		else begin // Write==1 escrita
 			if(tag[0] == Address[3:0] && valido[0] == 1) begin // caso a tag confira
-				acessado = 1'b0; 
-				hit = 1'b1;	
-			end
-			
-			else if(tag[1] == Address[3:0] && valido[1] == 1) begin // caso nao confira a primeira tag, verifica a seguinte
-				acessado = 1'b1; 
+				acessado = 1'b0;
 				hit = 1'b1;
 			end
-			
+
+			else if(tag[1] == Address[3:0] && valido[1] == 1) begin // caso nao confira a primeira tag, verifica a seguinte
+				acessado = 1'b1;
+				hit = 1'b1;
+			end
+
 			else begin // caso nao exista nenhum bloco valido ou existe um bloco valido mas nao tem tag correspondente, faz acesso a memoria
 				acessado = lru[0];
-				if(dirty[acessado] == 1) begin // Verifica o bit dirty para o caso de ele ser valido. Necessidade de right back. 
+				if(dirty[acessado] == 1) begin // Verifica o bit dirty para o caso de ele ser valido. Necessidade de right back.
 					C_Write_M = 1'b1; // solicitacao de escrita da cache na memoria
 					C_Block_M = bloco[acessado]; // bloco da cache que deve ser escrito na memoria
 				end
-			end	
-			
+			end
+
 			cache[index][acessado][4:0] = BlockIn; //escrevendo na cache
 			cache[index][acessado][11] = 1'b1; // atualizacao do dirty do acessado (dirty = 1)
 			cache[index][acessado][10] = 1'b1; // atualizacao da lru: vai para o mais novo
@@ -116,7 +161,7 @@ endmodule
 
 
 module decod7_1(cin, cout); // transformar o binario em hexadecimal
-	
+
 	input [3:0]cin;
 	output reg [0:6]cout;
 
@@ -175,7 +220,7 @@ module parte_1 (SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, KEY);
 	assign exibir_bloco[1] = (BlockOut[1] & hit) | 1'b0;
 	assign exibir_bloco[2] = (BlockOut[2] & hit) | 1'b0;
 	assign exibir_bloco[3] = (BlockOut[3] & hit) | 1'b0;
-	assign exibir_bloco[4] = (BlockOut[4] & hit) | 1'b0;       
+	assign exibir_bloco[4] = (BlockOut[4] & hit) | 1'b0;
 
 	decod7_1 d0 (Address[3:0], HEX0);
 	decod7_1 d1 ({3'b0,Address[4]}, HEX1);
