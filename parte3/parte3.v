@@ -1,86 +1,89 @@
 module cache_totalmente_associativa (
-	input[4:0] Address,
+	input[6:0] Address,
 	input clock,
 	input Write,
 	input[4:0] BlockIn, // dado que esta indo do circuito para a cache
 	input[4:0] M_Block_C, // dado que esta indo da memoria para a cache
 
-	output reg[4:0] BlockOut, // o bloco da cache que está sendo enviado para o circuito
-	output reg C_Write_M, // sinal de acesso à memoria
-	output reg[4:0] C_Block_M, // o bloco da cache que está sendo enviado para a memoria
+	output reg[4:0] BlockOut, // o bloco da cache que estÃƒÂ¡ sendo enviado para o circuito
+	output reg C_Write_M, // sinal de acesso ÃƒÂ  memoria
+	output reg[4:0] C_Block_M, // o bloco da cache que estÃƒÂ¡ sendo enviado para a memoria
 	output reg hit
 	);
 
-	wire tag_mem = Address[7];
+	reg tag_mem;
+	assign tag_mem = Address;
 
 	reg [15:0] cache[3:0]; //4 blocos com palavras de 16bits
 
-	wire valido;
-	wire dirty;
-	wire lru   [1:0];
-	wire tag   [6:0];
-	wire bloco [3:0];
-	/*
-		Cache:
-			Valido Dirty LRU#1 LRU#2 TAG Dado
-			  x      x     x     x
-	*/
+	wire valido		[3:0];
+	wire dirty		[3:0];
+	wire [1:0]lru  [3:0];
+	wire [6:0]tag  [3:0];
+	wire [4:0]bloco[3:0];
 
-	assign  valido = cache[tag_mem][15];
-	assign  dirty  = cache[tag_mem][14];
-	assign  lru    = cache[tag_mem][13:12];
-	assign  tag    = cache[tag_mem][11:5];
-	assign  bloco  = cache[tag_mem][4:0];
+	assign  valido[0] = cache[0][15];	 assign  valido[2] = cache[2][15];
+	assign  dirty [0] = cache[0][14];	 assign  dirty [2] = cache[2][14];
+	assign  lru	  [0] = cache[0][13:12]; assign  lru   [2] = cache[2][13:12];
+	assign  tag   [0] = cache[0][11:5];  assign  tag   [2] = cache[2][11:5];
+	assign  bloco [0] = cache[0][4:0];	 assign  bloco [2] = cache[2][4:0];
 
-	reg acessado,caso_especial;
+	assign  valido[1] = cache[1][15];	 assign  valido[3] = cache[3][15];
+	assign  dirty [1] = cache[1][14];	 assign  dirty [3] = cache[3][14];
+	assign  lru	  [1] = cache[1][13:12]; assign  lru   [3] = cache[3][13:12];
+	assign  tag   [1] = cache[1][11:5];  assign  tag   [3] = cache[3][11:5];
+	assign  bloco [1] = cache[1][4:0];	 assign  bloco [3] = cache[3][4:0];
+
+	reg [1:0]acessado;
+	//,caso_especial;
 
 	initial begin
-		//INICIALIZAÇÃO DOS CONJUNTOS
+		//INICIALIZAÃƒâ€¡ÃƒÆ’O DOS CONJUNTOS
 
 		//([15]validade, [14]dirty, [13:12]lru, [11:5]tag, [4:0]bloco)
-		cache[0] = 12'b{1, 0, 00, 1100100, 00101}; //tag = 1100100(100) , valor = 00101(5)
-		cache[1] = 12'b{1, 0, 01, 1100110, 00001}; //tag = 1100110(102) , valor = 00001(1)
-		cache[2] = 12'b{0, 0, 11, 1101001, 00101}; //tag = 1101001(105) , valor = 00101(5)
-		cache[3] = 12'b{1, 0, 10, 1100101, 00011}; //tag = 1100101(101) , valor = 00011(3)
+		cache[0] <= {1'b1, 1'b0, 2'b00, 7'b1100100, 5'b00101}; //tag = 1100100(100) , valor = 00101(5)
+		cache[1] <= {1'b1, 1'b0, 2'b01, 7'b1100110, 5'b00001}; //tag = 1100110(102) , valor = 00001(1)
+		cache[2] <= {1'b0, 1'b0, 2'b11, 7'b1101001, 5'b00101}; //tag = 1101001(105) , valor = 00101(5)
+		cache[3] <= {1'b1, 1'b0, 2'b10, 7'b1100101, 5'b00011}; //tag = 1100101(101) , valor = 00011(3)
 
 		//cache[index]
-		caso_especial = 1'b0;
+		//caso_especial = 1'b0;
 
 		hit = 1'b0;
 	end
 
 	always@(posedge clock) begin
-		if(caso_especial) begin // caso especial de escrita ocorrendo ao mesmo tempo de uma leitura
+		/*if(caso_especial) begin // caso especial de escrita ocorrendo ao mesmo tempo de uma leitura
 			cache[index][acessado][4:0] = M_Block_C;
 			cache[index][acessado][11] = 1'b1;
 			caso_especial = 1'b0;
-		end // fim caso especial
+		end // fim caso especial*/
 
 
 		//>>>>LEITURA<<<<
 		if(Write == 0) begin
-			else if(tag[0] == Address[3:0] && valido[0] == 1) begin // caso nao exista a primeira tag, verifica a seguinte
+			if(tag[0] == Address[6:0]) begin // caso nao exista a primeira tag, verifica a seguinte
 				if (valido[0] == 1) begin
 					hit = 1'b1;
 				end
-			 acessado = 1'b0;
+			 acessado = 2'b00;
 			end
 
-			else if(tag[1] == Address[3:0] && valido[1] == 1) begin // caso nao exista a primeira tag, verifica a seguinte
-				if (valido[3] == 1) begin
+			else if(tag[1] == Address[6:0]) begin // caso nao exista a primeira tag, verifica a seguinte
+				if (valido[1] == 1) begin
 					hit = 1'b1;
 				end
-				acessado = 1'b1;
+				acessado = 2'b01;
 			end
 
-			else if(tag[2] == Address[3:0] && valido[2] == 1) begin // caso exista uma tag valida
-				if (valido[3] == 1) begin
+			else if(tag[2] == Address[6:0]) begin // caso exista uma tag valida
+				if (valido[2] == 1) begin
 					hit = 1'b1;
 				end
-				acessado = 2'b10
+				acessado = 2'b10;
 			end
 
-			else if(tag[3] == Address[3:0]) begin // caso nao exista a primeira tag, verifica a seguinte
+			else if(tag[3] == Address[6:0]) begin // caso nao exista a primeira tag, verifica a seguinte
 				if (valido[3] == 1) begin
 					hit = 1'b1;
 				end
@@ -104,11 +107,11 @@ module cache_totalmente_associativa (
 				if(dirty[acessado] == 1) begin // verifica o bit dirty para o caso de ele ser valido
 					C_Write_M = 1'b1; // solicitacao de escrita da cache na memoria
 					C_Block_M = bloco[acessado]; // bloco da cache que deve ser escrito na memoria
-					caso_especial = 1'b1; // CASO ESPECIAL: quando le bloco dirty, é necessario tanto ler quanto escrever algo na memoria
+					//caso_especial = 1'b1; // CASO ESPECIAL: quando le bloco dirty, ÃƒÂ© necessario tanto ler quanto escrever algo na memoria
 				end
 			end
 
-			BlockOut = cache[tag_mem][4:0]; // leitura do bloco e saída no circuito
+			BlockOut = cache[tag_mem][4:0]; // leitura do bloco e saÃƒÂ­da no circuito
 			cache[acessado][13:12] = 2'b00; // atualizacao do lru acessado: vai para o mais novo
 			cache[acessado][15] = 1'b1; //atualiza valido
 
@@ -123,14 +126,14 @@ module cache_totalmente_associativa (
 				cache[2][13:12] = cache[2][13:12] + 1'b1;
 			end
 			if(acessado != 2'b11) begin
-				cache[acessado3][13:12] = cache[3][13:12] + 1'b1;
+				cache[3][13:12] = cache[3][13:12] + 1'b1;
 			end
 
 		end // end leitura
 
 
 		//>>>>ESCRITA<<<<
-		else begin // Write==1 escrita
+		/*else begin // Write==1 escrita
 			if(tag[0] == Address[3:0] && valido[0] == 1) begin // caso a tag confira
 				acessado = 1'b0;
 				hit = 1'b1;
@@ -153,7 +156,7 @@ module cache_totalmente_associativa (
 			cache[index][acessado][11] = 1'b1; // atualizacao do dirty do acessado (dirty = 1)
 			cache[index][acessado][10] = 1'b1; // atualizacao da lru: vai para o mais novo
 			cache[index][~acessado][10] = 1'b0; // atualizacao da lru: vai para o mais antigo
-		end // end escrita
+		end // end escrita*/
 	end // end always posedge
 
 endmodule
@@ -190,7 +193,7 @@ module decod7_1(cin, cout); // transformar o binario em hexadecimal
 
 endmodule // fim transformar o binario em hexadecimal
 
-module parte_1 (SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, KEY);
+module parte3 (SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, KEY);
 
 	input  [17:0]SW;
 	input  [1:0] KEY;
@@ -210,7 +213,7 @@ module parte_1 (SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, KEY);
 
 	reg clock_c;
 
-	cache_ass2vias C1 (Address, clock_c, Write, BlockIn, M_Block_C, BlockOut, C_Write_M, C_Block_M, hit);
+	cache_totalmente_associativa C1 (Address, clock_c, Write, BlockIn, M_Block_C, BlockOut, C_Write_M, C_Block_M, hit);
 
 	ramlpm m1 (Address, C_Block_M, clock_m, C_Write_M , M_Block_C);
 
