@@ -11,8 +11,8 @@ module cache_totalmente_associativa (
 	output reg hit
 	);
 
-	reg tag_mem;
-	assign tag_mem = Address;
+	//reg tag_mem;
+	wire tag_mem = Address[6:0];
 
 	reg [15:0] cache[3:0]; //4 blocos com palavras de 16bits
 
@@ -22,12 +22,14 @@ module cache_totalmente_associativa (
 	wire [6:0]tag  [3:0];
 	wire [4:0]bloco[3:0];
 
+	//bloco 0 da cache						 //bloco 2 da cache
 	assign  valido[0] = cache[0][15];	 assign  valido[2] = cache[2][15];
 	assign  dirty [0] = cache[0][14];	 assign  dirty [2] = cache[2][14];
 	assign  lru	  [0] = cache[0][13:12]; assign  lru   [2] = cache[2][13:12];
 	assign  tag   [0] = cache[0][11:5];  assign  tag   [2] = cache[2][11:5];
 	assign  bloco [0] = cache[0][4:0];	 assign  bloco [2] = cache[2][4:0];
 
+	//bloco 1 da cache						 //bloco 3 da cache
 	assign  valido[1] = cache[1][15];	 assign  valido[3] = cache[3][15];
 	assign  dirty [1] = cache[1][14];	 assign  dirty [3] = cache[3][14];
 	assign  lru	  [1] = cache[1][13:12]; assign  lru   [3] = cache[3][13:12];
@@ -62,35 +64,39 @@ module cache_totalmente_associativa (
 
 		//>>>>LEITURA<<<<
 		if(Write == 0) begin
-			if(tag[0] == Address[6:0]) begin // caso nao exista a primeira tag, verifica a seguinte
-				if (valido[0] == 1) begin
-					hit = 1'b1;
+			if(tag[0] == Address[6:0]) begin //primeiro verificamos se a tag bate
+				if (valido[0] == 1'b1) begin	//caso sim, verificamos se o bloco é valido
+					hit = 1'b1;						//caso sim, hit
 				end
-			 acessado = 2'b00;
+			 acessado = 2'b00;					//caso não, tratamos o bloco invalido
 			end
 
-			else if(tag[1] == Address[6:0]) begin // caso nao exista a primeira tag, verifica a seguinte
-				if (valido[1] == 1) begin
+			else if(tag[1] == Address[6:0]) begin // realizamos o mesmo processo para bloco[1]
+				if (valido[1] == 1'b1) begin
 					hit = 1'b1;
 				end
 				acessado = 2'b01;
 			end
 
-			else if(tag[2] == Address[6:0]) begin // caso exista uma tag valida
-				if (valido[2] == 1) begin
+			else if(tag[2] == Address[6:0]) begin // realizamos o mesmo processo para bloco[2]
+				if (valido[2] == 1'b1) begin
 					hit = 1'b1;
 				end
 				acessado = 2'b10;
 			end
 
-			else if(tag[3] == Address[6:0]) begin // caso nao exista a primeira tag, verifica a seguinte
-				if (valido[3] == 1) begin
+			else if(tag[3] == Address[6:0]) begin // realizamos o mesmo processo para bloco[3]
+				if (valido[3] == 1'b1) begin
 					hit = 1'b1;
 				end
-					acessado = 2'b11;
+				acessado = 2'b11;
 			end
-
-			else begin // caso nao exista nenhum bloco valido ou existe um bloco valido mas nao tem tag correspondente, faz acesso a memoria
+			
+			//Quando hit = 0?
+			//Quando o bloco não há tag correspondente
+			//Quando a tag corresponde mas o bloco é invalido
+			
+			else if(hit == 1'b0) begin //duvida: quando o bloco é invalido, alteramos o bloco ou a alru mais antiga?
 				if(lru[0] == 2'b11) begin
 					acessado = 2'b00;
 				end
@@ -104,30 +110,30 @@ module cache_totalmente_associativa (
 					acessado = 2'b11;
 				end
 
-				if(dirty[acessado] == 1) begin // verifica o bit dirty para o caso de ele ser valido
-					C_Write_M = 1'b1; // solicitacao de escrita da cache na memoria
-					C_Block_M = bloco[acessado]; // bloco da cache que deve ser escrito na memoria
+				if(dirty[acessado] == 1) begin 	// se dirty != 0, precisamso fazer write-back
+					C_Write_M = 1'b1; 				// solicitacao de escrita da cache na memoria
+					C_Block_M = bloco[acessado]; 	// bloco da cache que deve ser escrito na memoria
 					//caso_especial = 1'b1; // CASO ESPECIAL: quando le bloco dirty, ÃƒÂ© necessario tanto ler quanto escrever algo na memoria
 				end
 			end
 
-			BlockOut = cache[tag_mem][4:0]; // leitura do bloco e saÃƒÂ­da no circuito
-			cache[acessado][13:12] = 2'b00; // atualizacao do lru acessado: vai para o mais novo
+			BlockOut = cache[acessado][4:0]; // leitura do bloco e saÃƒÂ­da no circuito
+			//cache[acessado][13:12] = 2'b00; // atualizacao do lru acessado: vai para o mais novo
 			cache[acessado][15] = 1'b1; //atualiza valido
 
 			//atualiza lru's
-			if(acessado != 2'b00) begin
+			//if(acessado != 2'b00) begin
 				cache[0][13:12] = cache[0][13:12] + 1'b1;
-			end
-			if(acessado != 2'b01) begin
+			//end
+			//if(acessado != 2'b01) begin
 				cache[1][13:12] = cache[1][13:12] + 1'b1;
-			end
-			if(acessado != 2'b10) begin
+			//end
+			//if(acessado != 2'b10) begin
 				cache[2][13:12] = cache[2][13:12] + 1'b1;
-			end
-			if(acessado != 2'b11) begin
+			//end
+			//if(acessado != 2'b11) begin
 				cache[3][13:12] = cache[3][13:12] + 1'b1;
-			end
+			//end
 
 		end // end leitura
 
