@@ -1,18 +1,18 @@
 module cache_totalmente_associativa (
-	input[6:0] Address,
-	input clock,
+	input Clock,
 	input Write,
+	input[6:0] Address,
 	input[4:0] BlockIn, // dado que esta indo do circuito para a cache
 	input[4:0] M_Block_C, // dado que esta indo da memoria para a cache
 
-	output reg[4:0] BlockOut, // o bloco da cache que estÃƒÂ¡ sendo enviado para o circuito
+	output reg [4:0] BlockOut, // o bloco da cache que estÃƒÂ¡ sendo enviado para o circuito
+	output reg [4:0] C_Block_M, // o bloco da cache que estÃƒÂ¡ sendo enviado para a memoria
 	output reg C_Write_M, // sinal de acesso ÃƒÂ  memoria
-	output reg[4:0] C_Block_M, // o bloco da cache que estÃƒÂ¡ sendo enviado para a memoria
 	output reg hit
 	);
 
 	//reg tag_mem;
-	wire tag_mem = Address[6:0];
+	//wire tag_mem = Address[6:0];
 
 	reg [15:0] cache[3:0]; //4 blocos com palavras de 16bits
 
@@ -37,7 +37,7 @@ module cache_totalmente_associativa (
 	assign  bloco [1] = cache[1][4:0];	 assign  bloco [3] = cache[3][4:0];
 
 	reg [1:0]acessado;
-	//,caso_especial;
+
 
 	initial begin
 		//INICIALIZAÃƒâ€¡ÃƒÆ’O DOS CONJUNTOS
@@ -48,20 +48,12 @@ module cache_totalmente_associativa (
 		cache[2] <= {1'b0, 1'b0, 2'b11, 7'b1101001, 5'b00101}; //tag = 1101001(105) , valor = 00101(5)
 		cache[3] <= {1'b1, 1'b0, 2'b10, 7'b1100101, 5'b00011}; //tag = 1100101(101) , valor = 00011(3)
 
-		//cache[index]
-		//caso_especial = 1'b0;
-
 		hit = 1'b0;
 	end
 
-	always@(posedge clock) begin
-		/*if(caso_especial) begin // caso especial de escrita ocorrendo ao mesmo tempo de uma leitura
-			cache[index][acessado][4:0] = M_Block_C;
-			cache[index][acessado][11] = 1'b1;
-			caso_especial = 1'b0;
-		end // fim caso especial*/
-
-
+	always@(posedge Clock) begin
+		// caso especial de escrita ocorrendo ao mesmo tempo de uma leitura
+		
 		//>>>>LEITURA<<<<
 		if(Write == 0) begin
 			if(tag[0] == Address[6:0]) begin //primeiro verificamos se a tag bate
@@ -70,34 +62,30 @@ module cache_totalmente_associativa (
 				end
 			 acessado = 2'b00;					//caso não, tratamos o bloco invalido
 			end
-
+				
 			else if(tag[1] == Address[6:0]) begin // realizamos o mesmo processo para bloco[1]
 				if (valido[1] == 1'b1) begin
 					hit = 1'b1;
 				end
 				acessado = 2'b01;
 			end
-
+				
 			else if(tag[2] == Address[6:0]) begin // realizamos o mesmo processo para bloco[2]
 				if (valido[2] == 1'b1) begin
 					hit = 1'b1;
 				end
 				acessado = 2'b10;
 			end
-
+				
 			else if(tag[3] == Address[6:0]) begin // realizamos o mesmo processo para bloco[3]
 				if (valido[3] == 1'b1) begin
 					hit = 1'b1;
 				end
 				acessado = 2'b11;
 			end
-			
-			//Quando hit = 0?
-			//Quando o bloco não há tag correspondente
-			//Quando a tag corresponde mas o bloco é invalido
-			
-			else if(hit == 1'b0) begin //duvida: quando o bloco é invalido, alteramos o bloco ou a alru mais antiga?
-				if(lru[0] == 2'b11) begin
+				
+			else begin //so buscamos o bloco mais antigo quando nao ha nenhum bloco com tag e valido desejado
+				if(lru[0] == 2'b11) begin //quem possui lru = 3?
 					acessado = 2'b00;
 				end
 				else if(lru[1] == 2'b11) begin
@@ -109,31 +97,42 @@ module cache_totalmente_associativa (
 				else if(lru[3] == 2'b11) begin
 					acessado = 2'b11;
 				end
-
-				if(dirty[acessado] == 1) begin 	// se dirty != 0, precisamso fazer write-back
-					C_Write_M = 1'b1; 				// solicitacao de escrita da cache na memoria
-					C_Block_M = bloco[acessado]; 	// bloco da cache que deve ser escrito na memoria
-					//caso_especial = 1'b1; // CASO ESPECIAL: quando le bloco dirty, ÃƒÂ© necessario tanto ler quanto escrever algo na memoria
+			
+				if(dirty[acessado] == 1) begin 	//se dirty != 0, precisamso fazer write-back
+					C_Write_M = 1'b1; 				//solicitacao de escrita da cache na memoria
+					C_Block_M = bloco[acessado]; 	//bloco da cache que deve ser escrito na memoria
+					cache[acessado][14] = 1'b0;	//atualiza dirty
 				end
 			end
-
-			BlockOut = cache[acessado][4:0]; // leitura do bloco e saÃƒÂ­da no circuito
-			//cache[acessado][13:12] = 2'b00; // atualizacao do lru acessado: vai para o mais novo
-			cache[acessado][15] = 1'b1; //atualiza valido
+			
+			if(hit == 1'b0) begin
+				// C_Write_M = 1 => escrita C_Write_M = 0 => leitura
+				C_Write_M = 1'b0;
+				ramlpm MB1 (Address, Clock, C_Block_M, C_Write_M, M_Block_C);
+				cache[acessado][4:0] = M_Block_C;
+				hit = 1'b1;
+			end
+			
+			BlockOut = cache[acessado][4:0]; // leitura do bloco e saidaa no circuito
+			cache[acessado][15] = 1'b1; 		//atualiza valido
+			cache[acessado][13:12] = 2'b00;	//o meu bloco acessado agora é o mais recentem
 
 			//atualiza lru's
-			//if(acessado != 2'b00) begin
-				cache[0][13:12] = cache[0][13:12] + 1'b1;
-			//end
-			//if(acessado != 2'b01) begin
-				cache[1][13:12] = cache[1][13:12] + 1'b1;
-			//end
-			//if(acessado != 2'b10) begin
-				cache[2][13:12] = cache[2][13:12] + 1'b1;
-			//end
-			//if(acessado != 2'b11) begin
-				cache[3][13:12] = cache[3][13:12] + 1'b1;
-			//end
+			if (hit == 1'b1) begin
+				if(acessado != 2'b00) begin
+					cache[0][13:12] = cache[0][13:12] + 1'b1;
+				end
+				if(acessado != 2'b01) begin
+					cache[1][13:12] = cache[1][13:12] + 1'b1;
+				end
+				if(acessado != 2'b10) begin
+					cache[2][13:12] = cache[2][13:12] + 1'b1;
+				end
+				if(acessado != 2'b11) begin
+					cache[3][13:12] = cache[3][13:12] + 1'b1;
+				end
+				hit = 1'b0;
+			end
 
 		end // end leitura
 
@@ -206,7 +205,7 @@ module parte3 (SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, KEY);
 	output [0:6] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7;
 	output [17:0] LEDR;
 
-	wire clock_m = KEY[0];
+	wire Clock_m = KEY[0];
 	wire Write = SW[17];
 	wire [4:0] Address = SW[14:10];
 	wire [4:0] BlockIn = SW[4:0]; // 0:leitura  1:escrita
@@ -217,11 +216,11 @@ module parte3 (SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, KEY);
 	wire C_Write_M;
 	wire hit;
 
-	reg clock_c;
+	reg Clock_c;
 
-	cache_totalmente_associativa C1 (Address, clock_c, Write, BlockIn, M_Block_C, BlockOut, C_Write_M, C_Block_M, hit);
+	cache_totalmente_associativa C1 (Address, Clock_c, Write, BlockIn, M_Block_C, BlockOut, C_Write_M, C_Block_M, hit);
 
-	ramlpm m1 (Address, C_Block_M, clock_m, C_Write_M , M_Block_C);
+	ramlpm m1 (Address, C_Block_M, Clock_m, C_Write_M , M_Block_C);
 
 	wire [4:0] exibir_bloco;
 
@@ -238,8 +237,8 @@ module parte3 (SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, KEY);
 
 	assign LEDR[0] = hit;
 
-	always@(posedge clock_m) begin
-		clock_c = ~clock_c;
+	always@(posedge Clock_m) begin
+		Clock_c = ~Clock_c;
 	end
 
 endmodule
