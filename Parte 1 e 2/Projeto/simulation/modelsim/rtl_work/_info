@@ -1,0 +1,86 @@
+m255
+K3
+13
+cModel Technology
+Z0 dC:\Users\Aluno\Downloads\MatheusMarques_GrabrielPadovani_Pratica1\TP1\Parte 1 e 2\simulation\modelsim
+vdecod7_1
+!i10b 1
+!s100 gLbbT[hn6m9o@R^@]laYW1
+Iz;A8TCOIioeJ>OSBV>^0a0
+VZ;49hX_TeDO5]ao8[U7h=1
+Z1 dC:\Users\Aluno\Downloads\MatheusMarques_GrabrielPadovani_Pratica1\TP1\Parte 1 e 2\simulation\modelsim
+Z2 w1458323428
+Z3 8C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/parte_1.v
+Z4 FC:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/parte_1.v
+L0 13
+Z5 OV;L;10.1d;51
+r1
+!s85 0
+31
+Z6 !s108 1502478810.432000
+Z7 !s107 C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/parte_1.v|
+Z8 !s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2|C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/parte_1.v|
+!s101 -O0
+Z9 o-vlog01compat -work work -O0
+Z10 !s92 -vlog01compat -work work {+incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2} -O0
+vMemoryBlock
+!i10b 1
+!s100 C:ZMbnnmWoinfd>f:ed`40
+I6>dOhKGlK7I8[MFi:lL1o0
+V^hmcS=o@8QLnkMXebQK0^1
+R1
+R2
+R3
+R4
+L0 1
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!s101 -O0
+R9
+R10
+n@memory@block
+vparte_1
+!i10b 1
+!s100 YNG:iDYV?VThYDghf6cQ>2
+Ic47bJmTMCcHHJSglJVVmL1
+Vizza8W1]_[QTj[FJXW?ao1
+R1
+R2
+R3
+R4
+L0 42
+R5
+r1
+!s85 0
+31
+R6
+R7
+R8
+!s101 -O0
+R9
+R10
+vramlpm
+I@`]6<mQLBeN<OKPC]?g3S2
+VR:=61PRUnAZWihg=S@JO<2
+R1
+w1458323334
+8C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/ramlpm.v
+FC:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/ramlpm.v
+L0 39
+R5
+r1
+31
+R9
+!i10b 1
+!s100 <GYQcYgMz0PdTL5WIP=4=1
+!s85 0
+!s108 1502478810.073000
+!s107 C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/ramlpm.v|
+!s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2|C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/ramlpm.v|
+!s101 -O0
+R10

@@ -1,0 +1,101 @@
+# Reading C:/altera/13.0sp1/modelsim_ase/tcl/vsim/pref.tcl 
+# do parte_1_run_msim_rtl_verilog.do 
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Copying C:\altera\13.0sp1\modelsim_ase\win32aloem/../modelsim.ini to modelsim.ini
+# Modifying modelsim.ini
+# ** Warning: Copied C:\altera\13.0sp1\modelsim_ase\win32aloem/../modelsim.ini to modelsim.ini.
+#          Updated modelsim.ini.
+# 
+# vlog -vlog01compat -work work +incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte\ 1\ e\ 2 {C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/ramlpm.v}
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module ramlpm
+# 
+# Top level modules:
+# 	ramlpm
+# vlog -vlog01compat -work work +incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte\ 1\ e\ 2 {C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/parte_1.v}
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module MemoryBlock
+# -- Compiling module decod7_1
+# -- Compiling module parte_1
+# 
+# Top level modules:
+# 	parte_1
+# 
+vsim +altera -L altera_mf_ver -do parte_1_run_msim_rtl_verilog.do -l msim_transcript -gui work.parte_1
+# vsim +altera -L altera_mf_ver -do parte_1_run_msim_rtl_verilog.do -l msim_transcript -gui work.parte_1 
+# Loading work.parte_1
+# Loading work.MemoryBlock
+# Loading work.ramlpm
+# Loading altera_mf_ver.altsyncram
+# Loading altera_mf_ver.ALTERA_DEVICE_FAMILIES
+# Loading altera_mf_ver.ALTERA_MF_MEMORY_INITIALIZATION
+# Loading work.decod7_1
+# do parte_1_run_msim_rtl_verilog.do 
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Modifying modelsim.ini
+# 
+# vlog -vlog01compat -work work +incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte\ 1\ e\ 2 {C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/ramlpm.v}
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module ramlpm
+# 
+# Top level modules:
+# 	ramlpm
+# vlog -vlog01compat -work work +incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte\ 1\ e\ 2 {C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/parte_1.v}
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module MemoryBlock
+# -- Compiling module decod7_1
+# -- Compiling module parte_1
+# 
+# Top level modules:
+# 	parte_1
+# 
+vsim +altera -L altera_mf_ver -do parte_1_run_msim_rtl_verilog.do -l msim_transcript -gui work.MemoryBlock
+# vsim +altera -L altera_mf_ver -do parte_1_run_msim_rtl_verilog.do -l msim_transcript -gui work.MemoryBlock 
+# Loading work.MemoryBlock
+# Loading work.ramlpm
+# Loading altera_mf_ver.altsyncram
+# Loading altera_mf_ver.ALTERA_DEVICE_FAMILIES
+# Loading altera_mf_ver.ALTERA_MF_MEMORY_INITIALIZATION
+# do parte_1_run_msim_rtl_verilog.do 
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Modifying modelsim.ini
+# 
+# vlog -vlog01compat -work work +incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte\ 1\ e\ 2 {C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/ramlpm.v}
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module ramlpm
+# 
+# Top level modules:
+# 	ramlpm
+# vlog -vlog01compat -work work +incdir+C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte\ 1\ e\ 2 {C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/parte_1.v}
+# Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+# -- Compiling module MemoryBlock
+# -- Compiling module decod7_1
+# -- Compiling module parte_1
+# 
+# Top level modules:
+# 	parte_1
+# 
+wave create -driver freeze -pattern clock -initialvalue HiZ -period 200ps -dutycycle 50 -starttime 0ps -endtime 1000ps sim:/MemoryBlock/clock
+add wave -position end  sim:/MemoryBlock/address
+add wave -position end  sim:/MemoryBlock/address
+wave create -driver freeze -pattern counter -startvalue 00000 -endvalue 00011 -type Range -direction Up -period 50ps -step 1 -repeat forever -range 4 0 -starttime 0ps -endtime 1000ps sim:/MemoryBlock/address
+wave modify -driver freeze -pattern counter -startvalue 00000 -endvalue 00011 -type Range -direction Up -period 300ps -step 1 -repeat forever -range 4 0 -starttime 0ps -endtime 1000ps Edit:/MemoryBlock/address
+wave modify -driver freeze -pattern counter -startvalue 00000 -endvalue 00011 -type Range -direction Up -period 250ps -step 1 -repeat forever -range 4 0 -starttime 0ps -endtime 1000ps Edit:/MemoryBlock/address
+wave create -driver freeze -pattern constant -value 0 -starttime 0ps -endtime 1000ps sim:/MemoryBlock/wren
+add wave -position end  sim:/MemoryBlock/q
+run -all
+write format wave -window .main_pane.wave.interior.cs.body.pw.wf {C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/simulation/modelsim/Leitura_MIF.do}
+wave editwrite -file {C:/Users/Aluno/Downloads/MatheusMarques_GrabrielPadovani_Pratica1/TP1/Parte 1 e 2/simulation/modelsim/Leitura_MIF.do} -append
+add wave -position 0 -format Logic -height 17 -editable 2 Edit:/MemoryBlock/wren
