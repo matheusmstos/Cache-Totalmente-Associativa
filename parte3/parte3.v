@@ -23,15 +23,15 @@ module cache_totalmente_associativa (
 	wire [4:0]bloco[3:0];
 
 	//bloco 0 da cache						 //bloco 2 da cache
-	assign  valido[0] = cache[0][15];	 assign  valido[2] = cache[2][15];
-	assign  dirty [0] = cache[0][14];	 assign  dirty [2] = cache[2][14];
+	assign  valido[0] = cache[0][15];	 	 assign  valido[2] = cache[2][15];
+	assign  dirty [0] = cache[0][14];	 	 assign  dirty [2] = cache[2][14];
 	assign  lru	  [0] = cache[0][13:12]; assign  lru   [2] = cache[2][13:12];
 	assign  tag   [0] = cache[0][11:5];  assign  tag   [2] = cache[2][11:5];
 	assign  bloco [0] = cache[0][4:0];	 assign  bloco [2] = cache[2][4:0];
 
 	//bloco 1 da cache						 //bloco 3 da cache
-	assign  valido[1] = cache[1][15];	 assign  valido[3] = cache[3][15];
-	assign  dirty [1] = cache[1][14];	 assign  dirty [3] = cache[3][14];
+	assign  valido[1] = cache[1][15];	 	 assign  valido[3] = cache[3][15];
+	assign  dirty [1] = cache[1][14];	 	 assign  dirty [3] = cache[3][14];
 	assign  lru	  [1] = cache[1][13:12]; assign  lru   [3] = cache[3][13:12];
 	assign  tag   [1] = cache[1][11:5];  assign  tag   [3] = cache[3][11:5];
 	assign  bloco [1] = cache[1][4:0];	 assign  bloco [3] = cache[3][4:0];
@@ -53,7 +53,7 @@ module cache_totalmente_associativa (
 
 	always@(posedge Clock) begin
 		// caso especial de escrita ocorrendo ao mesmo tempo de uma leitura
-		
+
 		//>>>>LEITURA<<<<
 		if(Write == 0) begin
 			if(tag[0] == Address[6:0]) begin //primeiro verificamos se a tag bate
@@ -62,28 +62,28 @@ module cache_totalmente_associativa (
 				end
 			 acessado = 2'b00;					//caso não, tratamos o bloco invalido
 			end
-				
+
 			else if(tag[1] == Address[6:0]) begin // realizamos o mesmo processo para bloco[1]
 				if (valido[1] == 1'b1) begin
 					hit = 1'b1;
 				end
 				acessado = 2'b01;
 			end
-				
+
 			else if(tag[2] == Address[6:0]) begin // realizamos o mesmo processo para bloco[2]
 				if (valido[2] == 1'b1) begin
 					hit = 1'b1;
 				end
 				acessado = 2'b10;
 			end
-				
+
 			else if(tag[3] == Address[6:0]) begin // realizamos o mesmo processo para bloco[3]
 				if (valido[3] == 1'b1) begin
 					hit = 1'b1;
 				end
 				acessado = 2'b11;
 			end
-				
+
 			else begin //so buscamos o bloco mais antigo quando nao ha nenhum bloco com tag e valido desejado
 				if(lru[0] == 2'b11) begin //quem possui lru = 3?
 					acessado = 2'b00;
@@ -97,14 +97,14 @@ module cache_totalmente_associativa (
 				else if(lru[3] == 2'b11) begin
 					acessado = 2'b11;
 				end
-			
+				
 				if(dirty[acessado] == 1) begin 	//se dirty != 0, precisamso fazer write-back
 					C_Write_M = 1'b1; 				//solicitacao de escrita da cache na memoria
 					C_Block_M = bloco[acessado]; 	//bloco da cache que deve ser escrito na memoria
 					cache[acessado][14] = 1'b0;	//atualiza dirty
 				end
 			end
-			
+
 			if(hit == 1'b0) begin
 				// C_Write_M = 1 => escrita C_Write_M = 0 => leitura
 				C_Write_M = 1'b0;
@@ -112,7 +112,7 @@ module cache_totalmente_associativa (
 				cache[acessado][4:0] = M_Block_C;
 				hit = 1'b1;
 			end
-			
+
 			BlockOut = cache[acessado][4:0]; // leitura do bloco e saidaa no circuito
 			cache[acessado][15] = 1'b1; 		//atualiza valido
 			cache[acessado][13:12] = 2'b00;	//o meu bloco acessado agora é o mais recentem
