@@ -23,15 +23,15 @@ module cache_totalmente_associativa (
 	wire [4:0]bloco[3:0];
 
 	//bloco 0 da cache						 //bloco 2 da cache
-	assign  valido[0] = cache[0][15];	 	 assign  valido[2] = cache[2][15];
-	assign  dirty [0] = cache[0][14];	 	 assign  dirty [2] = cache[2][14];
+	assign  valido[0] = cache[0][15];	 assign  valido[2] = cache[2][15];
+	assign  dirty [0] = cache[0][14];	 assign  dirty [2] = cache[2][14];
 	assign  lru	  [0] = cache[0][13:12]; assign  lru   [2] = cache[2][13:12];
 	assign  tag   [0] = cache[0][11:5];  assign  tag   [2] = cache[2][11:5];
 	assign  bloco [0] = cache[0][4:0];	 assign  bloco [2] = cache[2][4:0];
 
 	//bloco 1 da cache						 //bloco 3 da cache
-	assign  valido[1] = cache[1][15];	 	 assign  valido[3] = cache[3][15];
-	assign  dirty [1] = cache[1][14];	 	 assign  dirty [3] = cache[3][14];
+	assign  valido[1] = cache[1][15];	 assign  valido[3] = cache[3][15];
+	assign  dirty [1] = cache[1][14];	 assign  dirty [3] = cache[3][14];
 	assign  lru	  [1] = cache[1][13:12]; assign  lru   [3] = cache[3][13:12];
 	assign  tag   [1] = cache[1][11:5];  assign  tag   [3] = cache[3][11:5];
 	assign  bloco [1] = cache[1][4:0];	 assign  bloco [3] = cache[3][4:0];
@@ -56,6 +56,7 @@ module cache_totalmente_associativa (
 
 		//>>>>LEITURA<<<<
 		if(Write == 0) begin
+			hit = 1'b0;
 			if(tag[0] == Address[6:0]) begin //primeiro verificamos se a tag bate
 				if (valido[0] == 1'b1) begin	//caso sim, verificamos se o bloco é valido
 					hit = 1'b1;						//caso sim, hit
@@ -108,7 +109,7 @@ module cache_totalmente_associativa (
 			if(hit == 1'b0) begin
 				// C_Write_M = 1 => escrita C_Write_M = 0 => leitura
 				C_Write_M = 1'b0;
-				ramlpm MB1 (Address, Clock, C_Block_M, C_Write_M, M_Block_C);
+				//ramlpm MB1 (Address, Clock, C_Block_M, C_Write_M, M_Block_C);
 				cache[acessado][4:0] = M_Block_C;
 				hit = 1'b1;
 			end
@@ -118,20 +119,19 @@ module cache_totalmente_associativa (
 			cache[acessado][13:12] = 2'b00;	//o meu bloco acessado agora é o mais recentem
 
 			//atualiza lru's
-			if (hit == 1'b1) begin
-				if(acessado != 2'b00) begin
-					cache[0][13:12] = cache[0][13:12] + 1'b1;
+			if (hit == 1'b1 && cache[acessado][13:12] == 2'b00) begin
+				if(cache[acessado][13:12] == 2'b01) begin
+					cache[acessado - 1'b1][13:12] += 1'b1;
 				end
-				if(acessado != 2'b01) begin
-					cache[1][13:12] = cache[1][13:12] + 1'b1;
+				if(cache[acessado][13:12] == 2'b10) begin
+					cache[acessado - 2'b01][13:12] += 1'b1;
+					cache[acessado - 2'b10][13:12] += 1'b1;
 				end
-				if(acessado != 2'b10) begin
-					cache[2][13:12] = cache[2][13:12] + 1'b1;
+				if(cache[acessado][13:12] == 2'b11) begin
+					cache[acessado - 2'b01][13:12] += 1'b1;
+					cache[acessado - 2'b10][13:12] += 1'b1;
+					cache[acessado - 2'b11][13:12] += 1'b1;
 				end
-				if(acessado != 2'b11) begin
-					cache[3][13:12] = cache[3][13:12] + 1'b1;
-				end
-				hit = 1'b0;
 			end
 
 		end // end leitura
