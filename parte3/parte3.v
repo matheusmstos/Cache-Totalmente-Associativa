@@ -1,18 +1,20 @@
+	//cache_totalmente_associativa C1 (Address, Clock_c, Write, BlockIn, M_Block_C, BlockOut, C_Write_M, C_Block_M, hit);
+
+
 module cache_totalmente_associativa (
 	input Clock,
 	input Write,
-	input[6:0] Address,
+	inout[6:0] Address,
 	input[4:0] BlockIn, // dado que esta indo do circuito para a cache
-	input[4:0] M_Block_C, // dado que esta indo da memoria para a cache
+	input [4:0] M_Block_C, // dado que esta indo da memoria para a cache
 
 	output reg [4:0] BlockOut, // o bloco da cache que estÃƒÂ¡ sendo enviado para o circuito
 	output reg [4:0] C_Block_M, // o bloco da cache que estÃƒÂ¡ sendo enviado para a memoria
 	output reg C_Write_M, // sinal de acesso ÃƒÂ  memoria
 	output reg hit
 	);
-
-	//reg tag_mem;
-	//wire tag_mem = Address[6:0];
+	
+	ramlpm MB1 (Address, Clock, C_Block_M, C_Write_M, M_Block_C);
 
 	reg [15:0] cache[3:0]; //4 blocos com palavras de 16bits
 
@@ -116,7 +118,6 @@ module cache_totalmente_associativa (
 			if(hit == 1'b0) begin //busca dado da mem e escreve no bloco
 				// C_Write_M = 1 => escrita C_Write_M = 0 => leitura
 				C_Write_M = 1'b0;
-				//ramlpm MB1 (Address, Clock, C_Block_M, C_Write_M, M_Block_C);
 				cache[acessado][4:0] = M_Block_C;
 				cache[acessado][14] = 1'b0; //atualiza dirty pra 0
 				reset = 1'b1;
@@ -128,16 +129,16 @@ module cache_totalmente_associativa (
 			//atualiza lru's
 			if (reset == 1'b1) begin
 				if(cache[acessado][13:12] == 2'b01) begin //lru = 1 - atualiza o 0
-					cache[acessado - 1'b1][13:12] = cache[acessado - 1'b1][13:12] + 1'b1;
+					cache[0][13:12] = cache[0][13:12] + 1'b1;
 				end
 				if(cache[acessado][13:12] == 2'b10) begin //lru = 2 - atualiza o 0,1
-					cache[acessado - 2'b01][13:12] = cache[acessado - 2'b01][13:12] +1'b1;
-					cache[acessado - 2'b10][13:12] = cache[acessado - 2'b10][13:12] +1'b1;
+					cache[0][13:12] = cache[0][13:12] +2'b01;
+					cache[1][13:12] = cache[1][13:12] +2'b01;					
 				end
 				if(cache[acessado][13:12] == 2'b11) begin //lru = 3 - atualiza o 0,1,2
-					cache[acessado - 2'b01][13:12] = cache[acessado - 2'b01][13:12] +1'b1;
-					cache[acessado - 2'b10][13:12] = cache[acessado - 2'b10][13:12] +1'b1;
-					cache[acessado - 2'b11][13:12] = cache[acessado - 2'b11][13:12] +1'b1;
+					cache[0][13:12] = cache[0][13:12] +1'b1;
+					cache[1][13:12] = cache[1][13:12] +1'b1;
+					cache[2][13:12] = cache[2][13:12] +1'b1;
 				end
 				cache[acessado][13:12] = 2'b00;	//o meu bloco acessado agora é o mais recente
 				reset = 1'b0;
@@ -147,35 +148,35 @@ module cache_totalmente_associativa (
 
 
 		//>>>>ESCRITA<<<<
-		else begin // Write==1 escrita
-		hit = 1'b0;
-		if(tag[0] == Address[6:0]) begin //primeiro verificamos se a tag bate
-			if (valido[0] == 1'b1) begin	//caso sim, verificamos se o bloco é valido
-				hit = 1'b1;						//caso sim, hit
+		/*else begin // Write==1 escrita
+			hit = 1'b0;
+			if(tag[0] == Address[6:0]) begin //primeiro verificamos se a tag bate
+				if (valido[0] == 1'b1) begin	//caso sim, verificamos se o bloco é valido
+					hit = 1'b1;						//caso sim, hit
+				end
+			 acessado = 2'b00;					//caso não, tratamos o bloco invalido
 			end
-		 acessado = 2'b00;					//caso não, tratamos o bloco invalido
-		end
 
-		else if(tag[1] == Address[6:0]) begin // realizamos o mesmo processo para bloco[1]
-			if (valido[1] == 1'b1) begin
-				hicache[acessado][15] = 1'b1; 		//atualiza validot = 1'b1;
+			else if(tag[1] == Address[6:0]) begin // realizamos o mesmo processo para bloco[1]
+				if (valido[1] == 1'b1) begin
+					hicache[acessado][15] = 1'b1; 		//atualiza validot = 1'b1;
+				end
+				acessado = 2'b01;
 			end
-			acessado = 2'b01;
-		end
 
-		else if(tag[2] == Address[6:0]) begin // realizamos o mesmo processo para bloco[2]
-			if (valido[2] == 1'b1) begin
-				hit = 1'b1;
+			else if(tag[2] == Address[6:0]) begin // realizamos o mesmo processo para bloco[2]
+				if (valido[2] == 1'b1) begin
+					hit = 1'b1;
+				end
+				acessado = 2'b10;
 			end
-			acessado = 2'b10;
-		end
 
-		else if(tag[3] == Address[6:0]) begin // realizamos o mesmo processo para bloco[3]
-			if (valido[3] == 1'b1) begin
-				hit = 1'b1;
+			else if(tag[3] == Address[6:0]) begin // realizamos o mesmo processo para bloco[3]
+				if (valido[3] == 1'b1) begin
+					hit = 1'b1;
+				end
+				acessado = 2'b11;
 			end
-			acessado = 2'b11;
-		end
 
 			else begin // caso nao exista nenhum bloco valido ou existe um bloco valido mas nao tem tag correspondente, faz acesso a memoria
 				acessado = lru[0];
@@ -190,25 +191,27 @@ module cache_totalmente_associativa (
 			cache[acessado][15] = 1'b1; //atualiza valido
 
 			//atualiza lru's
-			if (reset = 1'b1) begin
+			if (reset == 1'b1) begin
 				if(cache[acessado][13:12] == 2'b01) begin //lru = 1 - atualiza o 0
-					cache[acessado - 1'b1][13:12] = cache[acessado - 1'b1][13:12] + 1'b1;
+					cache[0][13:12] = cache[0][13:12] + 1'b1;
 				end
 				if(cache[acessado][13:12] == 2'b10) begin //lru = 2 - atualiza o 0,1
-					cache[acessado - 2'b01][13:12] = cache[acessado - 2'b01][13:12] +1'b1;
-					cache[acessado - 2'b10][13:12] = cache[acessado - 2'b10][13:12] +1'b1;
+					cache[0][13:12] = cache[0][13:12] +2'b01;
+					cache[1][13:12] = cache[1][13:12] +2'b01;					
 				end
 				if(cache[acessado][13:12] == 2'b11) begin //lru = 3 - atualiza o 0,1,2
-					cache[acessado - 2'b01][13:12] = cache[acessado - 2'b01][13:12] +1'b1;
-					cache[acessado - 2'b10][13:12] = cache[acessado - 2'b10][13:12] +1'b1;
-					cache[acessado - 2'b11][13:12] = cache[acessado - 2'b11][13:12] +1'b1;
+					cache[0][13:12] = cache[0][13:12] +1'b1;
+					cache[1][13:12] = cache[1][13:12] +1'b1;
+					cache[2][13:12] = cache[2][13:12] +1'b1;
 				end
 				cache[acessado][13:12] = 2'b00;	//o meu bloco acessado agora é o mais recente
+				reset = 1'b0;
 			end
 
-
-		end // end escrita
+		end // end escrita*/
 	end // end always posedge
+
+	//ramlpm MB1 (Address, Clock, C_Block_M, C_Write_M, M_Block_C);	
 
 endmodule
 
@@ -264,9 +267,9 @@ module parte3 (SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, KEY);
 
 	reg Clock_c;
 
-	cache_totalmente_associativa C1 (Address, Clock_c, Write, BlockIn, M_Block_C, BlockOut, C_Write_M, C_Block_M, hit);
+	//cache_totalmente_associativa C1 (Address, Clock_c, Write, BlockIn, M_Block_C, BlockOut, C_Write_M, C_Block_M, hit);
 
-	ramlpm m1 (Address, C_Block_M, Clock_m, C_Write_M , M_Block_C);
+	//ramlpm m1 (Address, C_Block_M, Clock_m, C_Write_M , M_Block_C);
 
 	wire [4:0] exibir_bloco;
 

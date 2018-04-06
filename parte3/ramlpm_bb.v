@@ -40,9 +40,9 @@ module ramlpm (
 
 	input	[7:0]  address;
 	input	  clock;
-	input	[15:0]  data;
+	input	[4:0]  data;
 	input	  wren;
-	output	[15:0]  q;
+	output	[4:0]  q;
 `ifndef ALTERA_RESERVED_QIS
 // synopsys translate_off
 `endif
@@ -87,7 +87,7 @@ endmodule
 // Retrieval info: PRIVATE: UseDQRAM NUMERIC "1"
 // Retrieval info: PRIVATE: WRCONTROL_ACLR_A NUMERIC "0"
 // Retrieval info: PRIVATE: WidthAddr NUMERIC "8"
-// Retrieval info: PRIVATE: WidthData NUMERIC "16"
+// Retrieval info: PRIVATE: WidthData NUMERIC "5"
 // Retrieval info: PRIVATE: rden NUMERIC "0"
 // Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
 // Retrieval info: CONSTANT: CLOCK_ENABLE_INPUT_A STRING "BYPASS"
@@ -102,18 +102,18 @@ endmodule
 // Retrieval info: CONSTANT: OUTDATA_REG_A STRING "UNREGISTERED"
 // Retrieval info: CONSTANT: POWER_UP_UNINITIALIZED STRING "FALSE"
 // Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "8"
-// Retrieval info: CONSTANT: WIDTH_A NUMERIC "16"
+// Retrieval info: CONSTANT: WIDTH_A NUMERIC "5"
 // Retrieval info: CONSTANT: WIDTH_BYTEENA_A NUMERIC "1"
 // Retrieval info: USED_PORT: address 0 0 8 0 INPUT NODEFVAL "address[7..0]"
 // Retrieval info: USED_PORT: clock 0 0 0 0 INPUT VCC "clock"
-// Retrieval info: USED_PORT: data 0 0 16 0 INPUT NODEFVAL "data[15..0]"
-// Retrieval info: USED_PORT: q 0 0 16 0 OUTPUT NODEFVAL "q[15..0]"
+// Retrieval info: USED_PORT: data 0 0 5 0 INPUT NODEFVAL "data[4..0]"
+// Retrieval info: USED_PORT: q 0 0 5 0 OUTPUT NODEFVAL "q[4..0]"
 // Retrieval info: USED_PORT: wren 0 0 0 0 INPUT NODEFVAL "wren"
 // Retrieval info: CONNECT: @address_a 0 0 8 0 address 0 0 8 0
 // Retrieval info: CONNECT: @clock0 0 0 0 0 clock 0 0 0 0
-// Retrieval info: CONNECT: @data_a 0 0 16 0 data 0 0 16 0
+// Retrieval info: CONNECT: @data_a 0 0 5 0 data 0 0 5 0
 // Retrieval info: CONNECT: @wren_a 0 0 0 0 wren 0 0 0 0
-// Retrieval info: CONNECT: q 0 0 16 0 @q_a 0 0 16 0
+// Retrieval info: CONNECT: q 0 0 5 0 @q_a 0 0 5 0
 // Retrieval info: GEN_FILE: TYPE_NORMAL ramlpm.v TRUE
 // Retrieval info: GEN_FILE: TYPE_NORMAL ramlpm.inc FALSE
 // Retrieval info: GEN_FILE: TYPE_NORMAL ramlpm.cmp FALSE
